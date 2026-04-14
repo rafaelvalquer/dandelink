@@ -23,6 +23,8 @@ server/.env.*
 !client/.env.example
 !server/.env.example
 
+server/uploads/
+
 .DS_Store
 Thumbs.db
 .idea/

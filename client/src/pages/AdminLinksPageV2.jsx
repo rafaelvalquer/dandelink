@@ -14,9 +14,9 @@ import {
   saveCollectionItem,
   saveLink,
   saveMyPageProfile,
-  uploadMyPageAvatar,
   toggleCollection,
   toggleLink,
+  uploadMyPageAvatar,
 } from "../app/api.js";
 import CollectionsEditorCard from "../components/editor/CollectionsEditorCard.jsx";
 import LinksEditorCard from "../components/editor/LinksEditorCard.jsx";
@@ -36,7 +36,7 @@ function swapById(items = [], id, direction) {
   return next.map((item) => item.id);
 }
 
-export default function AdminLinksPage() {
+export default function AdminLinksPageV2() {
   const [page, setPage] = useState(null);
   const [profileDraft, setProfileDraft] = useState({
     title: "",
@@ -185,7 +185,7 @@ export default function AdminLinksPage() {
       setError("");
       const response = await removeLink(id);
       setPage(response.page);
-      setNotice("Link excluído.");
+      setNotice("Link excluido.");
     } catch (actionError) {
       setError(actionError.message);
     }
@@ -242,11 +242,11 @@ export default function AdminLinksPage() {
     try {
       setError("");
       const response = await createCollection({
-        title: "Nova coleção",
+        title: "Nova colecao",
         isActive: true,
       });
       setPage(response.page);
-      setNotice("Coleção adicionada.");
+      setNotice("Colecao adicionada.");
     } catch (actionError) {
       setError(actionError.message);
     }
@@ -259,7 +259,7 @@ export default function AdminLinksPage() {
       if (!collection) return;
       const response = await saveCollection(id, collection);
       setPage(response.page);
-      setNotice("Coleção salva.");
+      setNotice("Colecao salva.");
     } catch (actionError) {
       setError(actionError.message);
     }
@@ -270,7 +270,7 @@ export default function AdminLinksPage() {
       setError("");
       const response = await removeCollection(id);
       setPage(response.page);
-      setNotice("Coleção excluída.");
+      setNotice("Colecao excluida.");
     } catch (actionError) {
       setError(actionError.message);
     }
@@ -289,7 +289,7 @@ export default function AdminLinksPage() {
       }));
       const response = await toggleCollection(id);
       setPage(response.page);
-      setNotice("Visibilidade da coleção atualizada.");
+      setNotice("Visibilidade da colecao atualizada.");
     } catch (actionError) {
       setError(actionError.message);
     }
@@ -312,7 +312,7 @@ export default function AdminLinksPage() {
       });
       const response = await reorderCollections(nextIds);
       setPage(response.page);
-      setNotice("Coleções reordenadas.");
+      setNotice("Colecoes reordenadas.");
     } catch (actionError) {
       setError(actionError.message);
     }
@@ -327,7 +327,7 @@ export default function AdminLinksPage() {
         isActive: true,
       });
       setPage(response.page);
-      setNotice("Item da coleção adicionado.");
+      setNotice("Item da colecao adicionado.");
     } catch (actionError) {
       setError(actionError.message);
     }
@@ -359,7 +359,7 @@ export default function AdminLinksPage() {
       if (!item) return;
       const response = await saveCollectionItem(collectionId, itemId, item);
       setPage(response.page);
-      setNotice("Item da coleção salvo.");
+      setNotice("Item da colecao salvo.");
     } catch (actionError) {
       setError(actionError.message);
     }
@@ -370,7 +370,7 @@ export default function AdminLinksPage() {
       setError("");
       const response = await removeCollectionItem(collectionId, itemId);
       setPage(response.page);
-      setNotice("Item da coleção excluído.");
+      setNotice("Item da colecao excluido.");
     } catch (actionError) {
       setError(actionError.message);
     }
@@ -402,22 +402,16 @@ export default function AdminLinksPage() {
       }));
       const response = await reorderCollectionItems(collectionId, nextIds);
       setPage(response.page);
-      setNotice("Itens da coleção reordenados.");
+      setNotice("Itens da colecao reordenados.");
     } catch (actionError) {
       setError(actionError.message);
     }
   }
 
   return (
-    <EditorShell
-      title="Links e Coleções"
-      description="Monte os blocos públicos da página e acompanhe o preview enquanto edita."
-      page={previewPage}
-      notice={notice}
-      error={error}
-    >
+    <EditorShell title="Links" page={previewPage} notice={notice} error={error}>
       {loading ? (
-        <div className="loading-state">Carregando editor da página...</div>
+        <div className="loading-state">Carregando editor da pagina...</div>
       ) : (
         <div className="stack">
           <ProfileEditorCard
@@ -425,6 +419,8 @@ export default function AdminLinksPage() {
             onChange={handleProfileChange}
             onSave={handleSaveProfile}
             isSaving={savingProfile}
+            onUploadAvatar={handleUploadAvatar}
+            isUploadingAvatar={uploadingAvatar}
           />
 
           <LinksEditorCard
@@ -456,4 +452,3 @@ export default function AdminLinksPage() {
     </EditorShell>
   );
 }
-

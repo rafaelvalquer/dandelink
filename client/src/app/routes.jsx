@@ -1,6 +1,6 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import AdminDesignPage from "../pages/AdminDesignPage.jsx";
-import AdminLinksPage from "../pages/AdminLinksPage.jsx";
+import AdminLinksPage from "../pages/AdminLinksPageV2.jsx";
 import AdminShopPage from "../pages/AdminShopPage.jsx";
 import PublicMyPage from "../pages/PublicMyPage.jsx";
 

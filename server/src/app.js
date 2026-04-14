@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import { env } from "./config/env.js";
+import { ensureUploadsDir, uploadsRoot } from "./config/uploads.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFound } from "./middleware/notFound.js";
 import healthRoutes from "./routes/health.routes.js";
@@ -21,6 +22,7 @@ function isDevLoopbackOrigin(origin) {
 
 export function createApp() {
   const app = express();
+  ensureUploadsDir();
 
   const allowlist = String(env.corsOrigin || "")
     .split(",")
@@ -55,6 +57,7 @@ export function createApp() {
   app.use(cors(corsOptions));
   app.options("*", cors(corsOptions));
   app.use(express.json({ limit: "1mb" }));
+  app.use("/uploads", express.static(uploadsRoot));
 
   app.use("/api", healthRoutes);
   app.use("/api", myPageRoutes);

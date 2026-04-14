@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { uploadAvatarHandler } from "../controllers/avatar.controller.js";
 import {
   createCollectionHandler,
   createCollectionItemHandler,
@@ -22,6 +23,7 @@ import {
   getPublicMyPageHandler,
   updateMyPageHandler,
 } from "../controllers/myPage.controller.js";
+import { uploadAvatarSingle } from "../middleware/uploadAvatar.js";
 import { updateShopHandler } from "../controllers/shop.controller.js";
 
 const router = Router();
@@ -29,6 +31,7 @@ const router = Router();
 router.get("/my-page", getMyPageHandler);
 router.put("/my-page", updateMyPageHandler);
 router.get("/my-page/public/:slug", getPublicMyPageHandler);
+router.post("/my-page/avatar", uploadAvatarSingle, uploadAvatarHandler);
 
 router.post("/my-page/links", createLinkHandler);
 router.patch("/my-page/links/reorder", reorderLinksHandler);

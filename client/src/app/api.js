@@ -28,6 +28,24 @@ export function saveMyPageProfile(payload) {
   return request("PUT", "/my-page", payload);
 }
 
+export async function uploadMyPageAvatar(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${API_BASE}/my-page/avatar`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data?.error || `Falha no upload com status ${response.status}`);
+  }
+
+  return data;
+}
+
 export function saveMyPageTheme(theme) {
   return request("PUT", "/my-page", { theme });
 }
