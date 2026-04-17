@@ -243,30 +243,34 @@ export default function PublicPageSceneView({
             animate={motionPreset.wrapper.animate}
           >
             <div className="public-page__shell-actions">
-              <div
-                className="public-page__chrome-button is-passive"
-                style={theme.chromeButtonStyle}
-                aria-hidden="true"
-              >
-                <Sparkles size={18} />
-              </div>
+              {!previewMode ? (
+                <>
+                  <div
+                    className="public-page__chrome-button is-passive"
+                    style={theme.chromeButtonStyle}
+                    aria-hidden="true"
+                  >
+                    <Sparkles size={18} />
+                  </div>
 
-              <button
-                type="button"
-                className={cls(
-                  "public-page__chrome-button",
-                  previewMode || !interactive ? "is-disabled" : "",
-                )}
-                style={theme.chromeButtonStyle}
-                onClick={handleShare}
-                disabled={previewMode || !interactive}
-                aria-label="Compartilhar pagina"
-              >
-                <Share2 size={18} />
-              </button>
+                  <button
+                    type="button"
+                    className={cls(
+                      "public-page__chrome-button",
+                      !interactive ? "is-disabled" : "",
+                    )}
+                    style={theme.chromeButtonStyle}
+                    onClick={handleShare}
+                    disabled={!interactive}
+                    aria-label="Compartilhar pagina"
+                  >
+                    <Share2 size={18} />
+                  </button>
+                </>
+              ) : null}
             </div>
 
-            {shareFeedback ? (
+            {shareFeedback && !previewMode ? (
               <div
                 className="public-page__share-feedback"
                 style={theme.chromeButtonStyle}
@@ -341,7 +345,6 @@ export default function PublicPageSceneView({
                     theme={theme}
                     links={socialLinks}
                     interactive={interactive}
-                    forceIconOnly
                   />
                 </motion.div>
               ) : null}

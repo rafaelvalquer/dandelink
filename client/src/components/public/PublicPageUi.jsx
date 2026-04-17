@@ -3,6 +3,7 @@ import { getButtonProps, getButtonRadiusClassName } from "./buttonTheme.js";
 import {
   getMyPageButtonIcon,
   getMyPageButtonMeta,
+  getMyPageSocialLabel,
   getMyPageSocialBrand,
   getMyPageTheme,
   getPrimaryLinksLayout,
@@ -227,7 +228,7 @@ export function PublicPageSocialLinks({
       {items.map((link, index) => {
         const brand = getMyPageSocialBrand(link);
         const Icon = brand.Icon;
-        const label = String(link?.title || brand.platform || "Link").trim();
+        const label = getMyPageSocialLabel(link);
 
         return (
           <ActionContainer
@@ -239,6 +240,7 @@ export function PublicPageSocialLinks({
               radiusClassName,
               layout.size === "small" && "is-small",
               iconOnly && "is-icon-only",
+              textOnly && "is-text-only",
               compact && "is-compact",
             )}
             style={theme.secondaryButtonStyle}

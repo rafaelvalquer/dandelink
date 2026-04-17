@@ -32,6 +32,7 @@ import {
   createMyPageThemePreviewPage,
   getMyPagePreviewPrimaryLinks,
   getMyPagePreviewSocialLinks,
+  getMyPageSocialLabel,
   getMyPageThemePresetValues,
   getMyPageSocialBrand,
   getMyPageTheme,
@@ -346,6 +347,7 @@ function SocialPreview({ theme, links }) {
           {links.slice(0, 3).map((link) => {
             const brand = getMyPageSocialBrand(link);
             const Icon = brand.Icon;
+            const label = getMyPageSocialLabel(link);
             return (
               <div
                 key={link.id}
@@ -353,6 +355,7 @@ function SocialPreview({ theme, links }) {
                   "design-social-preview__item",
                   radiusClassName,
                   iconOnly ? "is-icon-only" : "",
+                  theme.design.secondaryLinksStyle === "text" ? "is-text-only" : "",
                   theme.design.secondaryLinksSize === "small" ? "is-small" : "",
                 )}
                 style={theme.secondaryButtonStyle}
@@ -369,7 +372,7 @@ function SocialPreview({ theme, links }) {
                     <Icon size={13} />
                   </span>
                 ) : null}
-                {iconOnly ? null : <small>{link.title}</small>}
+                {iconOnly ? null : <small>{label}</small>}
               </div>
             );
           })}

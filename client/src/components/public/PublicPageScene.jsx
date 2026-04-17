@@ -5,6 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import {
   getMyPageButtonIcon,
   getMyPageButtonMeta,
+  getMyPageSocialLabel,
   getMyPageMotionPreset,
   getMyPageSocialBrand,
   getMyPageTheme,
@@ -136,9 +137,10 @@ function PrimaryLinkCard({ link, interactive, theme, preview = false }) {
 function SecondaryLinkChip({ link, theme, interactive }) {
   const brand = getMyPageSocialBrand(link);
   const layout = getSecondaryLinksLayout(theme);
-  const label = renderTitle(link?.title, brand.platform);
+  const label = getMyPageSocialLabel(link);
   const Icon = brand.Icon;
   const iconOnly = theme?.design?.secondaryLinksStyle === "icon";
+  const textOnly = theme?.design?.secondaryLinksStyle === "text";
   const showIcon = theme?.design?.secondaryLinksStyle !== "text";
   const useBadge = theme?.design?.secondaryLinksIconLayout !== "plain";
 
@@ -149,6 +151,7 @@ function SecondaryLinkChip({ link, theme, interactive }) {
       className={cls(
         "public-page__social-chip",
         iconOnly ? "is-icon-only" : "",
+        textOnly ? "is-text-only" : "",
         `is-${layout.size}`,
       )}
       style={theme.secondaryButtonStyle}
