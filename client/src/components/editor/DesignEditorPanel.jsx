@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import ButtonShadowEditor from "./ButtonShadowEditor.jsx";
 import ButtonThemePreview from "./ButtonThemePreview.jsx";
-import Button from "../ui/Button.jsx";
 import {
   MY_PAGE_ANIMATION_PRESET_OPTIONS,
   MY_PAGE_BACKGROUND_GRADIENT_DIRECTION_OPTIONS,
@@ -503,7 +502,7 @@ function DesignCategoryNav({ activeId, onSelect }) {
   );
 }
 
-function DesignPanelShell({ category, onSave, isSaving, children }) {
+function DesignPanelShell({ category, children }) {
   return (
     <section className="design-shell__panel">
       <header className="design-shell__panel-header">
@@ -512,9 +511,6 @@ function DesignPanelShell({ category, onSave, isSaving, children }) {
           <h2>{fixCopy(category.title)}</h2>
           <p>{fixCopy(category.description)}</p>
         </div>
-        <Button onClick={onSave} disabled={isSaving}>
-          {isSaving ? "Salvando..." : "Salvar tema"}
-        </Button>
       </header>
       <div className="design-shell__panel-body">{children}</div>
     </section>
@@ -975,8 +971,6 @@ export default function DesignEditorPanel({
   page,
   value,
   onChange,
-  onSave,
-  isSaving = false,
 }) {
   const [activeDesignCategory, setActiveDesignCategory] = useState("marca");
   const previewPage = useMemo(
@@ -1031,7 +1025,7 @@ export default function DesignEditorPanel({
         onSelect={setActiveDesignCategory}
       />
 
-      <DesignPanelShell category={activeCategory} onSave={onSave} isSaving={isSaving}>
+      <DesignPanelShell category={activeCategory}>
         {renderPanelContent({
           categoryId: activeCategory.id,
           value,

@@ -31,7 +31,8 @@ export default function EditorShell({
   previewTitle = null,
 }) {
   const sidebarPage = publishedPage || page;
-  const hasPreviewHeader = Boolean(previewEyebrow || previewTitle);
+  const resolvedPreviewEyebrow = previewEyebrow || "Preview ao vivo";
+  const resolvedPreviewTitle = previewTitle || "Página pública";
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(getInitialSidebarCollapsed);
 
   useEffect(() => {
@@ -54,7 +55,12 @@ export default function EditorShell({
           </span>
           <div className="editor-shell__topbar-copy">
             <strong>DandeLink admin</strong>
+            <span>Editor visual</span>
           </div>
+        </div>
+
+        <div className="editor-shell__topbar-center" aria-hidden="true">
+          <span>Administração limpa, preview em tempo real</span>
         </div>
 
         <div className="editor-shell__topbar-meta">
@@ -97,12 +103,10 @@ export default function EditorShell({
 
         <aside className="editor-shell__preview">
           <div className="editor-shell__preview-top">
-            {hasPreviewHeader ? (
-              <div className="editor-shell__preview-header">
-                {previewEyebrow ? <span>{previewEyebrow}</span> : null}
-                {previewTitle ? <strong>{previewTitle}</strong> : null}
-              </div>
-            ) : null}
+            <div className="editor-shell__preview-header">
+              <span>{resolvedPreviewEyebrow}</span>
+              <strong>{resolvedPreviewTitle}</strong>
+            </div>
             <PreviewSharePopover page={publishedPage} />
           </div>
 

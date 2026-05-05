@@ -339,6 +339,7 @@ export default function PreviewSharePopover({ page }) {
           isDisabled && "is-disabled",
           open && "is-open",
         )}
+        aria-label={isDisabled ? "Salve a página para publicar" : "Compartilhar página"}
         onClick={() => {
           if (!isDisabled) {
             setOpen((current) => !current);
