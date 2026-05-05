@@ -34,6 +34,10 @@ const FONT_FAMILIES = {
   jakarta: "'Plus Jakarta Sans', 'Segoe UI', sans-serif",
   sora: "Sora, 'Segoe UI', sans-serif",
   editorial: "Georgia, 'Times New Roman', serif",
+  playfair: "'Playfair Display', Georgia, serif",
+  cormorant: "'Cormorant Garamond', Georgia, serif",
+  bebas: "'Bebas Neue', Impact, sans-serif",
+  caveat: "Caveat, 'Segoe Print', cursive",
 };
 
 const VALID_BUTTON_STYLES = new Set(BUTTON_STYLE_OPTIONS.map((option) => option.value));

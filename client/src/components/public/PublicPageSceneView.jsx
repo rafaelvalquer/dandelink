@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Share2, Sparkles } from "lucide-react";
+import { Check, Copy, Share2, Sparkles, X } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import {
   getMyPageButtonIcon,
@@ -26,6 +26,28 @@ import {
 
 function cls(...parts) {
   return parts.filter(Boolean).join(" ");
+}
+
+const PIX_KEY_TYPE_LABELS = {
+  random: "Chave aleatória",
+  cpf: "CPF",
+  cnpj: "CNPJ",
+  email: "E-mail",
+  phone: "Telefone",
+  other: "Outra chave",
+};
+
+function normalizePixKeyType(value = "") {
+  const normalizedValue = String(value || "").trim().toLowerCase();
+  return PIX_KEY_TYPE_LABELS[normalizedValue] ? normalizedValue : "random";
+}
+
+function getPixKeyTypeLabel(value = "") {
+  return PIX_KEY_TYPE_LABELS[normalizePixKeyType(value)] || "Chave aleatória";
+}
+
+function getPixKey(link = {}) {
+  return String(link?.pixKey || "").trim();
 }
 
 function getContentAlignClassName(theme) {
@@ -102,11 +124,26 @@ function ActionContainer({
   );
 }
 
-function PrimaryLinkCard({ link, interactive, page, theme, preview = false }) {
+function PrimaryLinkCard({
+  link,
+  interactive,
+  page,
+  theme,
+  preview = false,
+  onPixOpen,
+}) {
   const Icon = getMyPageButtonIcon(link);
   const title = getMyPagePrimaryLinkLabel(link);
   const locationSubtitle =
     link?.type === "location" ? String(link?.address || "").trim() : "";
+  const pixKey = link?.type === "pix" ? getPixKey(link) : "";
+  const pixSubtitle =
+    link?.type === "pix"
+      ? pixKey
+        ? getPixKeyTypeLabel(link?.pixKeyType)
+        : "Chave PIX"
+      : "";
+  const subtitle = locationSubtitle || pixSubtitle;
   const contentAlignClassName = getContentAlignClassName(theme);
   const buttonProps = getPublicButtonProps(
     theme,
@@ -114,6 +151,47 @@ function PrimaryLinkCard({ link, interactive, page, theme, preview = false }) {
     cls(preview && "is-preview"),
   );
   const iconProps = getMyPagePrimaryIconProps(theme, preview ? "preview" : "public");
+  const content = (
+    <div className="public-page__cta-main">
+      <div
+        className={cls("public-page__cta-icon", iconProps.className)}
+        style={iconProps.style}
+      >
+        <Icon className={iconProps.iconClassName} size={iconProps.iconSize} />
+      </div>
+      <div className={cls("public-page__cta-copy", contentAlignClassName)}>
+        <strong>{title}</strong>
+        {subtitle ? (
+          <span className="public-page__cta-subtitle">{subtitle}</span>
+        ) : null}
+      </div>
+      <div className="public-page__cta-balance" aria-hidden="true" />
+    </div>
+  );
+
+  if (link?.type === "pix") {
+    const canOpenPix = interactive && !preview && Boolean(pixKey);
+
+    if (canOpenPix) {
+      return (
+        <button
+          type="button"
+          className={buttonProps.className}
+          style={buttonProps.style}
+          onClick={() => onPixOpen?.(link)}
+          aria-label={title}
+        >
+          {content}
+        </button>
+      );
+    }
+
+    return (
+      <div className={buttonProps.className} style={buttonProps.style} aria-label={title}>
+        {content}
+      </div>
+    );
+  }
 
   return (
     <ActionContainer
@@ -126,24 +204,113 @@ function PrimaryLinkCard({ link, interactive, page, theme, preview = false }) {
       style={buttonProps.style}
       ariaLabel={title}
       >
-        <div className="public-page__cta-main">
-          <div
-            className={cls("public-page__cta-icon", iconProps.className)}
-            style={iconProps.style}
-          >
-            <Icon className={iconProps.iconClassName} size={iconProps.iconSize} />
-          </div>
-          <div className={cls("public-page__cta-copy", contentAlignClassName)}>
-            <strong>{title}</strong>
-            {locationSubtitle ? (
-              <span className="public-page__cta-subtitle">{locationSubtitle}</span>
-            ) : null}
-          </div>
-          <div className="public-page__cta-balance" aria-hidden="true" />
-        </div>
+        {content}
       </ActionContainer>
     );
   }
+
+function PixPaymentModal({ link, theme, onClose }) {
+  const pixKey = getPixKey(link);
+  const [copyStatus, setCopyStatus] = useState("");
+  const title = getMyPagePrimaryLinkLabel(link);
+  const keyTypeLabel = getPixKeyTypeLabel(link?.pixKeyType);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        onClose?.();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose]);
+
+  async function handleCopyKey() {
+    if (!pixKey) {
+      return;
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(pixKey);
+        setCopyStatus("Chave copiada");
+        return;
+      }
+    } catch (error) {
+      void error;
+    }
+
+    setCopyStatus("Copie manualmente");
+  }
+
+  if (!pixKey) {
+    return null;
+  }
+
+  return (
+    <div className="public-page__pix-modal" role="dialog" aria-modal="true" aria-labelledby="public-pix-title">
+      <button
+        type="button"
+        className="public-page__pix-backdrop"
+        onClick={onClose}
+        aria-label="Fechar PIX"
+      />
+      <div className="public-page__pix-panel" style={theme.surfaceStyle}>
+        <button
+          type="button"
+          className="public-page__pix-close"
+          onClick={onClose}
+          aria-label="Fechar modal PIX"
+        >
+          <X size={18} aria-hidden="true" />
+        </button>
+
+        <div className="public-page__pix-header">
+          <span>PIX</span>
+          <h2 id="public-pix-title">{title}</h2>
+          <p>Escaneie o QR Code ou copie a chave para pagar.</p>
+        </div>
+
+        <div className="public-page__pix-qr" aria-label={`QR Code PIX para ${title}`}>
+          <QRCodeSVG
+            value={pixKey}
+            size={220}
+            level="M"
+            includeMargin={false}
+            bgColor="#ffffff"
+            fgColor="#111827"
+          />
+        </div>
+
+        <div className="public-page__pix-key-box">
+          <span>{keyTypeLabel}</span>
+          <code>{pixKey}</code>
+        </div>
+
+        <button
+          type="button"
+          className="public-page__pix-copy"
+          onClick={handleCopyKey}
+        >
+          {copyStatus === "Chave copiada" ? (
+            <Check size={18} aria-hidden="true" />
+          ) : (
+            <Copy size={18} aria-hidden="true" />
+          )}
+          {copyStatus || "Copiar chave"}
+        </button>
+
+        <p className="public-page__pix-note">
+          QR Code gerado com chave simples, sem valor definido.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function ShopCard({ page, shop, theme, interactive }) {
   const previewProducts = sortActiveProducts(shop?.products || []).slice(0, 4);
@@ -254,6 +421,7 @@ export default function PublicPageSceneView({
   const publicUrl = getPublicPageUrl(page, interactive, true);
   const publicPath = getPublicPageUrl(page, interactive, false);
   const [shareFeedback, setShareFeedback] = useState("");
+  const [activePixLink, setActivePixLink] = useState(null);
 
   useEffect(() => {
     if (!shareFeedback) return undefined;
@@ -406,6 +574,7 @@ export default function PublicPageSceneView({
                           page={page}
                           theme={theme}
                           preview={previewMode}
+                          onPixOpen={(pixLink) => setActivePixLink(pixLink)}
                         />
                       )}
                     </motion.div>
@@ -486,6 +655,14 @@ export default function PublicPageSceneView({
           </aside>
         ) : null}
       </div>
+
+      {activePixLink && !previewMode && interactive ? (
+        <PixPaymentModal
+          link={activePixLink}
+          theme={theme}
+          onClose={() => setActivePixLink(null)}
+        />
+      ) : null}
     </PublicPageScreen>
   );
 }

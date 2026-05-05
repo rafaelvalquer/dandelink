@@ -5,6 +5,7 @@ import {
   Link2,
   MapPin,
   MessageCircle,
+  QrCode,
   ShoppingBag,
   Sparkles,
   Store,
@@ -147,6 +148,19 @@ export const PRIMARY_LINK_PICKER_OPTIONS = [
     badgeStyle: {
       background: "linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)",
       color: "#15803d",
+    },
+  },
+  {
+    id: "pix",
+    scope: "primary",
+    category: "essentials",
+    label: "PIX",
+    description: "Mostre QR Code e chave PIX para pagamento.",
+    keywords: ["pix", "qr code", "pagamento", "chave", "copia e cola"],
+    Icon: QrCode,
+    badgeStyle: {
+      background: "linear-gradient(135deg, #ccfbf1 0%, #d9f99d 100%)",
+      color: "#0f766e",
     },
   },
   {
@@ -507,6 +521,17 @@ export function buildPrimaryLinkCreatePayload(type = "link") {
       showMap: false,
       isActive: true,
       type: "location",
+    };
+  }
+
+  if (normalizedType === "pix") {
+    return {
+      title: "PIX",
+      url: "",
+      pixKey: "",
+      pixKeyType: "random",
+      isActive: true,
+      type: "pix",
     };
   }
 

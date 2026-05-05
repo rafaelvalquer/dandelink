@@ -1,6 +1,7 @@
 ﻿import {
   Link2,
   MapPin,
+  QrCode,
   ShoppingBag,
   Store,
 } from "lucide-react";
@@ -970,6 +971,10 @@ export const MY_PAGE_FONT_PRESET_OPTIONS = [
   { value: "jakarta", label: "Jakarta" },
   { value: "sora", label: "Sora" },
   { value: "editorial", label: "Editorial" },
+  { value: "playfair", label: "Playfair" },
+  { value: "cormorant", label: "Cormorant" },
+  { value: "bebas", label: "Bebas" },
+  { value: "caveat", label: "Caveat" },
 ];
 
 export const MY_PAGE_BUTTON_STYLE_OPTIONS = [
@@ -1056,6 +1061,10 @@ const FONT_FAMILIES = {
   jakarta: "'Plus Jakarta Sans', 'Segoe UI', sans-serif",
   sora: "Sora, 'Segoe UI', sans-serif",
   editorial: "Georgia, 'Times New Roman', serif",
+  playfair: "'Playfair Display', Georgia, serif",
+  cormorant: "'Cormorant Garamond', Georgia, serif",
+  bebas: "'Bebas Neue', Impact, sans-serif",
+  caveat: "Caveat, 'Segoe Print', cursive",
 };
 
 const LEGACY_RADIUS_MAP = {
@@ -2065,6 +2074,7 @@ export function getMyPageButtonIcon(link = {}) {
   if (link?.type === "whatsapp") return FaWhatsapp;
   if (link?.type === "location") return MapPin;
   if (link?.type === "shop-preview") return ShoppingBag;
+  if (link?.type === "pix") return QrCode;
   if (link?.type === "link" && String(link?.platform || "").trim()) {
     return getMyPageSocialBrand(link).Icon;
   }
@@ -2076,6 +2086,7 @@ export function getMyPageButtonMeta(link = {}) {
   if (link?.type === "whatsapp") return "WhatsApp";
   if (link?.type === "location") return "Localizacao";
   if (link?.type === "shop-preview") return "Shop";
+  if (link?.type === "pix") return "PIX";
   if (link?.type === "link" && String(link?.platform || "").trim()) {
     return getMyPageSocialLabel(link);
   }
@@ -2089,6 +2100,7 @@ export function getMyPagePrimaryLinkLabel(link = {}) {
   if (link?.type === "whatsapp") return "WhatsApp";
   if (link?.type === "location") return "Localizacao";
   if (link?.type === "shop-preview") return "Previa da loja";
+  if (link?.type === "pix") return "PIX";
   if (link?.type === "link" && String(link?.platform || "").trim()) {
     return getMyPageSocialLabel(link);
   }

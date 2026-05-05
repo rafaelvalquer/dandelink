@@ -57,7 +57,17 @@ const LEGACY_BUTTON_STYLE_TO_RADIUS = {
 };
 
 const VALID_THEME_OPTIONS = {
-  fontPreset: new Set(["inter", "manrope", "jakarta", "editorial"]),
+  fontPreset: new Set([
+    "inter",
+    "manrope",
+    "jakarta",
+    "sora",
+    "editorial",
+    "playfair",
+    "cormorant",
+    "bebas",
+    "caveat",
+  ]),
   buttonStyle: new Set(["solid", "soft", "outline", "glass", "metallic"]),
   buttonShadow: new Set(["none", "soft", "strong", "hard"]),
   buttonRadius: new Set(["square", "round", "pill"]),
@@ -84,7 +94,9 @@ const PRIMARY_LINK_TYPES = new Set([
   "shop-preview",
   "whatsapp",
   "location",
+  "pix",
 ]);
+const PIX_KEY_TYPES = new Set(["random", "cpf", "cnpj", "email", "phone", "other"]);
 const SECONDARY_LINK_PLATFORMS = new Set([
   "instagram",
   "facebook",
@@ -202,6 +214,11 @@ function toPlainObject(value) {
 
 function isPrimaryLinkType(value) {
   return PRIMARY_LINK_TYPES.has(String(value || "").trim().toLowerCase());
+}
+
+function normalizePixKeyType(value = "") {
+  const normalizedValue = String(value || "").trim().toLowerCase();
+  return PIX_KEY_TYPES.has(normalizedValue) ? normalizedValue : "random";
 }
 
 function isPrimaryLinkPlatform(value) {
@@ -469,6 +486,8 @@ function normalizeLink(link = {}, orderFallback = 0) {
       ? source.title.trim()
       : type === "link" && platform
         ? getSecondaryPlatformLabel(platform)
+        : type === "pix"
+          ? "PIX"
         : "";
   const phone =
     type === "whatsapp" ? normalizePhoneNumber(source.phone) : "";
@@ -486,6 +505,12 @@ function normalizeLink(link = {}, orderFallback = 0) {
       : "";
   const showMap =
     type === "location" ? source.showMap === true : false;
+  const pixKey =
+    type === "pix" && typeof source.pixKey === "string"
+      ? source.pixKey.trim()
+      : "";
+  const pixKeyType =
+    type === "pix" ? normalizePixKeyType(source.pixKeyType) : "random";
   const handle =
     type === "link" && isHandlePlatform(platform)
       ? normalizeSecondaryHandle(source.handle || source.url || "", platform)
@@ -505,7 +530,7 @@ function normalizeLink(link = {}, orderFallback = 0) {
     url = buildWhatsAppUrl(phone, message);
   } else if (type === "location") {
     url = buildLocationUrl(address, placeId);
-  } else if (type === "shop-preview") {
+  } else if (type === "shop-preview" || type === "pix") {
     url = "";
   } else if (platform) {
     url = buildSecondaryUrl(
@@ -536,6 +561,8 @@ function normalizeLink(link = {}, orderFallback = 0) {
     address,
     placeId,
     showMap,
+    pixKey,
+    pixKeyType,
     isActive: source.isActive !== false,
     order: Number.isFinite(Number(source.order)) ? Number(source.order) : orderFallback,
     type,
@@ -1082,6 +1109,12 @@ function sanitizeLinkPayload(payload = {}) {
       typeof payload.placeId === "string" ? payload.placeId.trim() : undefined,
     showMap:
       typeof payload.showMap === "boolean" ? payload.showMap : undefined,
+    pixKey:
+      typeof payload.pixKey === "string" ? payload.pixKey.trim() : undefined,
+    pixKeyType:
+      typeof payload.pixKeyType === "string"
+        ? normalizePixKeyType(payload.pixKeyType)
+        : undefined,
     isActive:
       typeof payload.isActive === "boolean" ? payload.isActive : undefined,
     type: isPrimaryLinkType(rawType) ? rawType : undefined,
@@ -1233,6 +1266,8 @@ export async function createLink(ownerId, payload = {}) {
     address: data.address || "",
     placeId: data.placeId || "",
     showMap: data.showMap ?? false,
+    pixKey: data.pixKey || "",
+    pixKeyType: data.pixKeyType || "random",
     isActive: data.isActive ?? true,
     order: page.links.length,
     type: data.type || "link",

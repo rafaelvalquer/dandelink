@@ -37,7 +37,9 @@ const PRIMARY_LINK_TYPES = new Set([
   "whatsapp",
   "location",
   "shop-preview",
+  "pix",
 ]);
+const PIX_KEY_TYPES = new Set(["random", "cpf", "cnpj", "email", "phone", "other"]);
 const SECONDARY_LINK_PLATFORMS = new Set([
   "instagram",
   "facebook",
@@ -59,6 +61,11 @@ const SECONDARY_LINK_PLATFORMS = new Set([
 
 const WHATSAPP_DEFAULT_MESSAGE =
   "Olá! Vim pela sua página pública e gostaria de mais informações.";
+
+function normalizePixKeyType(value = "") {
+  const normalizedValue = String(value || "").trim().toLowerCase();
+  return PIX_KEY_TYPES.has(normalizedValue) ? normalizedValue : "random";
+}
 
 function cloneItems(items = []) {
   return items.map((item) => ({ ...item }));
@@ -170,6 +177,8 @@ function createEditableLink(link = {}) {
     address: String(link.address || ""),
     placeId: String(link.placeId || ""),
     showMap: link.showMap === true,
+    pixKey: String(link.pixKey || ""),
+    pixKeyType: normalizePixKeyType(link.pixKeyType),
     isActive: link.isActive !== false,
   };
 }
@@ -179,6 +188,7 @@ function buildSavableLinkPayload(link = {}) {
   const isWhatsapp = draft.type === "whatsapp";
   const isLocation = draft.type === "location";
   const isShopPreview = draft.type === "shop-preview";
+  const isPix = draft.type === "pix";
   const usesPlatform = draft.type === "link" && Boolean(draft.platform);
   const usesHandle = usesPlatform && isSecondaryHandlePlatform(draft.platform);
   const isEmail = draft.platform === "email";
@@ -205,9 +215,9 @@ function buildSavableLinkPayload(link = {}) {
     : String(draft.url || "").trim();
 
   return {
-    title: draft.title || (usesPlatform ? getSecondaryPlatformLabel(draft.platform) : ""),
+    title: draft.title || (isPix ? "PIX" : usesPlatform ? getSecondaryPlatformLabel(draft.platform) : ""),
     type: draft.type,
-    url: !isWhatsapp && !isLocation && !isShopPreview ? normalizedUrl : "",
+    url: !isWhatsapp && !isLocation && !isShopPreview && !isPix ? normalizedUrl : "",
     platform: usesPlatform ? draft.platform : "",
     handle: usesHandle ? normalizedHandle : "",
     phone: isWhatsapp ? draft.phone : "",
@@ -215,6 +225,8 @@ function buildSavableLinkPayload(link = {}) {
     address: isLocation ? draft.address : "",
     placeId: isLocation ? draft.placeId : "",
     showMap: isLocation ? draft.showMap === true : false,
+    pixKey: isPix ? String(draft.pixKey || "").trim() : "",
+    pixKeyType: isPix ? normalizePixKeyType(draft.pixKeyType) : "random",
     isActive: draft.isActive !== false,
   };
 }

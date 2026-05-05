@@ -9,10 +9,12 @@ import {
   MapPin,
   MessageCircle,
   Pencil,
+  QrCode,
   ShoppingBag,
   Trash2,
   X,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { searchLocationSuggestions } from "../../app/api.js";
 import {
   PRIMARY_LINK_PLATFORM_OPTIONS,
@@ -32,10 +34,37 @@ const typeOptions = [
   { value: "whatsapp", label: "WhatsApp" },
   { value: "location", label: "Localização" },
   { value: "shop-preview", label: "Prévia da loja" },
+  { value: "pix", label: "PIX" },
 ];
 
 const WHATSAPP_DEFAULT_MESSAGE =
   "Olá! Vim pela sua página pública e gostaria de mais informações.";
+
+const PIX_KEY_TYPE_OPTIONS = [
+  { value: "random", label: "Chave aleatória" },
+  { value: "cpf", label: "CPF" },
+  { value: "cnpj", label: "CNPJ" },
+  { value: "email", label: "E-mail" },
+  { value: "phone", label: "Telefone" },
+  { value: "other", label: "Outra" },
+];
+
+const PIX_KEY_TYPE_LABELS = PIX_KEY_TYPE_OPTIONS.reduce(
+  (labels, option) => ({
+    ...labels,
+    [option.value]: option.label,
+  }),
+  {},
+);
+
+const PIX_KEY_PLACEHOLDERS = {
+  random: "Cole a chave aleatória",
+  cpf: "000.000.000-00",
+  cnpj: "00.000.000/0000-00",
+  email: "nome@email.com",
+  phone: "+55 11 99999-9999",
+  other: "Digite a chave PIX",
+};
 
 const LINK_TYPE_META = {
   link: {
@@ -66,6 +95,13 @@ const LINK_TYPE_META = {
     primaryPlaceholder: "",
     usesPrimaryField: false,
   },
+  pix: {
+    label: "PIX",
+    Icon: QrCode,
+    primaryFieldLabel: "Chave PIX",
+    primaryPlaceholder: "CPF, CNPJ, e-mail, telefone ou chave aleatória",
+    usesPrimaryField: true,
+  },
 };
 
 const INSIGHT_RANGE_OPTIONS = [
@@ -92,6 +128,15 @@ function getTypeMeta(link = {}) {
 function isUrlType(type = "") {
   const normalizedType = String(type || "").trim().toLowerCase();
   return normalizedType === "link";
+}
+
+function normalizePixKeyType(value = "") {
+  const normalizedValue = String(value || "").trim().toLowerCase();
+  return PIX_KEY_TYPE_LABELS[normalizedValue] ? normalizedValue : "random";
+}
+
+function getPixKeyTypeLabel(value = "") {
+  return PIX_KEY_TYPE_LABELS[normalizePixKeyType(value)] || "Chave aleatória";
 }
 
 function getPrimaryFieldValue(link = {}) {
@@ -121,6 +166,10 @@ function getPrimaryFieldValue(link = {}) {
 
   if (linkType === "location") {
     return String(link.address || "").trim();
+  }
+
+  if (linkType === "pix") {
+    return String(link.pixKey || "").trim();
   }
 
   return String(link.url || "").trim();
@@ -177,6 +226,38 @@ function ShopPreviewGrid({ products = [] }) {
   );
 }
 
+function PixKeyPreview({ link = {} }) {
+  const pixKey = String(link.pixKey || "").trim();
+
+  if (!pixKey) {
+    return (
+      <div className="link-card__pix-empty">
+        Informe a chave para gerar o QR Code.
+      </div>
+    );
+  }
+
+  return (
+    <div className="link-card__pix-preview" aria-label="Prévia do QR Code PIX">
+      <div className="link-card__pix-qr" aria-hidden="true">
+        <QRCodeSVG
+          value={pixKey}
+          size={88}
+          level="M"
+          includeMargin={false}
+          bgColor="#ffffff"
+          fgColor="#111827"
+        />
+      </div>
+      <div className="link-card__pix-copy">
+        <strong>QR Code PIX</strong>
+        <span>{getPixKeyTypeLabel(link.pixKeyType)}</span>
+        <code>{pixKey}</code>
+      </div>
+    </div>
+  );
+}
+
 function buildEditableLinkSnapshot(link = {}) {
   return JSON.stringify({
     title: String(link.title || ""),
@@ -189,6 +270,8 @@ function buildEditableLinkSnapshot(link = {}) {
     address: String(link.address || ""),
     placeId: String(link.placeId || ""),
     showMap: link.showMap === true,
+    pixKey: String(link.pixKey || ""),
+    pixKeyType: normalizePixKeyType(link.pixKeyType),
     isActive: link.isActive !== false,
   });
 }
@@ -253,6 +336,12 @@ function buildFieldPatch(link = {}, field, value, locationPlaceId = "") {
     };
   }
 
+  if (linkType === "pix") {
+    return {
+      pixKey: value,
+    };
+  }
+
   return { url: value };
 }
 
@@ -269,6 +358,8 @@ function createTypeChangePatch(link = {}, nextType) {
       address: "",
       placeId: "",
       showMap: false,
+      pixKey: "",
+      pixKeyType: "random",
       phone: currentType === "whatsapp" ? String(link.phone || "") : "",
       message:
         currentType === "whatsapp"
@@ -288,6 +379,8 @@ function createTypeChangePatch(link = {}, nextType) {
       address: currentType === "location" ? String(link.address || "") : "",
       placeId: currentType === "location" ? String(link.placeId || "") : "",
       showMap: currentType === "location" ? link.showMap === true : false,
+      pixKey: "",
+      pixKeyType: "random",
     };
   }
 
@@ -302,6 +395,25 @@ function createTypeChangePatch(link = {}, nextType) {
       address: "",
       placeId: "",
       showMap: false,
+      pixKey: "",
+      pixKeyType: "random",
+    };
+  }
+
+  if (normalizedNextType === "pix") {
+    return {
+      type: "pix",
+      url: "",
+      platform: "",
+      handle: "",
+      phone: "",
+      message: "",
+      address: "",
+      placeId: "",
+      showMap: false,
+      pixKey: currentType === "pix" ? String(link.pixKey || "") : "",
+      pixKeyType:
+        currentType === "pix" ? normalizePixKeyType(link.pixKeyType) : "random",
     };
   }
 
@@ -318,6 +430,8 @@ function createTypeChangePatch(link = {}, nextType) {
     address: "",
     placeId: "",
     showMap: false,
+    pixKey: "",
+    pixKeyType: "random",
   };
 }
 
@@ -633,6 +747,11 @@ export default function LinkItemRowV2({
   const primaryValue = getPrimaryFieldValue(link);
   const Icon = typeMeta.Icon;
   const isShopPreview = link.type === "shop-preview";
+  const isPixLink = link.type === "pix";
+  const pixKeyType = normalizePixKeyType(link.pixKeyType);
+  const primaryFieldPlaceholder = isPixLink
+    ? PIX_KEY_PLACEHOLDERS[pixKeyType] || PIX_KEY_PLACEHOLDERS.random
+    : typeMeta.primaryPlaceholder;
   const isEditingValue = editingField === "value";
   const isLocationValue = isEditingValue && link.type === "location";
   const insightPanelId = `link-insight-${link.id}`;
@@ -956,6 +1075,17 @@ export default function LinkItemRowV2({
     });
   }
 
+  async function handlePixKeyTypeChange(event) {
+    await commitPatch(
+      {
+        pixKeyType: normalizePixKeyType(event.target.value),
+      },
+      {
+        source: "menu",
+      },
+    );
+  }
+
   async function handleShowMapChange(nextChecked) {
     await commitPatch(
       {
@@ -1030,6 +1160,61 @@ export default function LinkItemRowV2({
             <div className="link-card__field-row link-card__field-row--value">
               {isShopPreview ? (
                 <ShopPreviewGrid products={shopProducts} />
+              ) : isPixLink ? (
+                <div className="link-card__pix-key-row">
+                  <label className="link-card__pix-type-select">
+                    <span>Tipo da chave</span>
+                    <select
+                      className="ui-select"
+                      value={pixKeyType}
+                      onChange={handlePixKeyTypeChange}
+                      aria-label="Tipo da chave PIX"
+                      disabled={Boolean(menuSaving || savingField)}
+                    >
+                      {PIX_KEY_TYPE_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  {editingField === "value" ? (
+                    <div className="link-card__field-editor">
+                      <Input
+                        ref={inputRef}
+                        className="link-card__inline-input"
+                        value={draftValue}
+                        onChange={handleFieldInputChange}
+                        onKeyDown={handleFieldKeyDown}
+                        onBlur={handleFieldBlur}
+                        placeholder={primaryFieldPlaceholder}
+                        aria-label={typeMeta.primaryFieldLabel}
+                        disabled={Boolean(savingField)}
+                      />
+                      {fieldError ? (
+                        <span className="link-card__field-error">{fieldError}</span>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="link-card__pix-key-display">
+                      <span
+                        className={`link-card__field-value${primaryValue ? "" : " is-placeholder"}`}
+                      >
+                        {primaryValue || primaryFieldPlaceholder}
+                      </span>
+                      <button
+                        type="button"
+                        className="link-card__field-action"
+                        onClick={() => startEditing("value")}
+                        aria-label={`Editar ${typeMeta.primaryFieldLabel.toLowerCase()} de ${link.title || typeMeta.label || "link"}`}
+                        disabled={Boolean(savingField || menuSaving)}
+                      >
+                        <Pencil size={14} aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               ) : editingField === "value" ? (
                 <div className="link-card__field-editor">
                   <Input
@@ -1039,7 +1224,7 @@ export default function LinkItemRowV2({
                     onChange={handleFieldInputChange}
                     onKeyDown={handleFieldKeyDown}
                     onBlur={handleFieldBlur}
-                    placeholder={typeMeta.primaryPlaceholder}
+                    placeholder={primaryFieldPlaceholder}
                     aria-label={typeMeta.primaryFieldLabel}
                     disabled={Boolean(savingField)}
                   />
@@ -1098,6 +1283,8 @@ export default function LinkItemRowV2({
                 </>
               )}
             </div>
+
+            {isPixLink ? <PixKeyPreview link={link} /> : null}
           </div>
 
           <div className="link-card__actions">
@@ -1180,6 +1367,30 @@ export default function LinkItemRowV2({
                       ))}
                     </select>
                   </label>
+                ) : null}
+
+                {link.type === "pix" ? (
+                  <>
+                    <label className="field">
+                      <span>Tipo da chave</span>
+                      <select
+                        className="ui-select"
+                        value={normalizePixKeyType(link.pixKeyType)}
+                        onChange={handlePixKeyTypeChange}
+                        aria-label="Tipo da chave PIX"
+                        disabled={menuSaving}
+                      >
+                        {PIX_KEY_TYPE_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="item-row__helper">
+                      O QR Code usa a chave PIX simples informada no campo do link.
+                    </div>
+                  </>
                 ) : null}
 
                 {menuError ? (
